@@ -9,6 +9,31 @@
       "region": "ap-southeast-1",
       "stage": "dev",
       "runtime": "provided.al2",
+      "environment": {
+        "AWS_BUCKET": {
+          "Ref": "Storage"
+        }
+      },
+      "iam": {
+        "role": {
+          "statements": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "s3:*"
+              ],
+              "Resource": [
+                {
+                  "Fn::Sub": "${Storage.Arn}"
+                },
+                {
+                  "Fn::Sub": "${Storage.Arn}/*"
+                }
+              ]
+            }
+          ]
+        }
+      },
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
@@ -152,6 +177,9 @@
                             "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/laravel-dev*:*:*"
                           }
                         ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iam\"][\"role\"][\"statements\"][0]"
                       }
                     ]
                   }
@@ -180,13 +208,20 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/laravel/dev/1677743191565-2023-03-02T07:46:31.565Z/laravel.zip"
+                "S3Key": "serverless/laravel/dev/1678268512911-2023-03-08T09:41:52.911Z/laravel.zip"
               },
               "Handler": "public/index.php",
               "Runtime": "provided.al2",
               "FunctionName": "laravel-dev-web",
               "MemorySize": 1024,
               "Timeout": 28,
+              "Environment": {
+                "Variables": {
+                  "AWS_BUCKET": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"AWS_BUCKET\"]"
+                  }
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -208,13 +243,20 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/laravel/dev/1677743191565-2023-03-02T07:46:31.565Z/laravel.zip"
+                "S3Key": "serverless/laravel/dev/1678268512911-2023-03-08T09:41:52.911Z/laravel.zip"
               },
               "Handler": "artisan",
               "Runtime": "provided.al2",
               "FunctionName": "laravel-dev-artisan",
               "MemorySize": 1024,
               "Timeout": 120,
+              "Environment": {
+                "Variables": {
+                  "AWS_BUCKET": {
+                    "$ref": "$[\"service\"][\"provider\"][\"environment\"][\"AWS_BUCKET\"]"
+                  }
+                }
+              },
               "Role": {
                 "Fn::GetAtt": [
                   "IamRoleLambdaExecution",
@@ -230,24 +272,24 @@
               "ArtisanLogGroup"
             ]
           },
-          "WebLambdaVersionY2CS7FZWkvodxC932Uitn7sYGlfMJqRw2pjZHfeVa4s": {
+          "WebLambdaVersionSD2yfzl4Dghyn35JYfojIUIM6ToTx3VMViTwpw6sci8": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "WebLambdaFunction"
               },
-              "CodeSha256": "hOjlzjXNldn3F+N0qPJLxz0rBVzZAWZPxwoOb0XIGVk="
+              "CodeSha256": "rVfojMSqnDwmNt1+MuhMxYUgpIXbrq9zI3Nqi4jLgjw="
             }
           },
-          "ArtisanLambdaVersionaDLQGlrcj0hYtA6rxUp4yANVgWpjzDDERLbw825EhI": {
+          "ArtisanLambdaVersionbYHETTD3cj9kiDkx4rXJVs3aPpAFljXfwvbAoeBmtc": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ArtisanLambdaFunction"
               },
-              "CodeSha256": "hOjlzjXNldn3F+N0qPJLxz0rBVzZAWZPxwoOb0XIGVk="
+              "CodeSha256": "rVfojMSqnDwmNt1+MuhMxYUgpIXbrq9zI3Nqi4jLgjw="
             }
           },
           "HttpApi": {
@@ -341,6 +383,179 @@
               }
             },
             "DependsOn": "HttpApiIntegrationWeb"
+          },
+          "Storage": {
+            "Type": "AWS::S3::Bucket"
+          },
+          "websiteAssets2A73BB69": {
+            "Type": "AWS::S3::Bucket",
+            "UpdateReplacePolicy": "Delete",
+            "DeletionPolicy": "Delete"
+          },
+          "websiteAssetsPolicyFDAAA9C0": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+              "Bucket": {
+                "Ref": "websiteAssets2A73BB69"
+              },
+              "PolicyDocument": {
+                "Statement": [
+                  {
+                    "Action": "s3:GetObject",
+                    "Effect": "Allow",
+                    "Principal": {
+                      "CanonicalUser": {
+                        "Fn::GetAtt": [
+                          "websiteCDNOrigin2S3OriginED10E993",
+                          "S3CanonicalUserId"
+                        ]
+                      }
+                    },
+                    "Resource": {
+                      "Fn::Join": [
+                        "",
+                        [
+                          {
+                            "Fn::GetAtt": [
+                              "websiteAssets2A73BB69",
+                              "Arn"
+                            ]
+                          },
+                          "/*"
+                        ]
+                      ]
+                    }
+                  }
+                ],
+                "Version": "2012-10-17"
+              }
+            }
+          },
+          "websiteRequestFunction9E9EBB7A": {
+            "Type": "AWS::CloudFront::Function",
+            "Properties": {
+              "FunctionCode": "function handler(event) {\n    var request = event.request;\n    request.headers[\"x-forwarded-host\"] = request.headers[\"host\"];\n    return request;\n}",
+              "FunctionConfig": {
+                "Comment": "laravel-dev-ap-southeast-1-website-request",
+                "Runtime": "cloudfront-js-1.0"
+              },
+              "Name": "laravel-dev-ap-southeast-1-website-request",
+              "AutoPublish": true
+            }
+          },
+          "websiteCDNOrigin2S3OriginED10E993": {
+            "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+            "Properties": {
+              "CloudFrontOriginAccessIdentityConfig": {
+                "Comment": "Identity for websiteCDNOrigin2BA1CC1CD"
+              }
+            }
+          },
+          "websiteCDN060D946D": {
+            "Type": "AWS::CloudFront::Distribution",
+            "Properties": {
+              "DistributionConfig": {
+                "CacheBehaviors": [
+                  {
+                    "AllowedMethods": [
+                      "GET",
+                      "HEAD",
+                      "OPTIONS"
+                    ],
+                    "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+                    "Compress": true,
+                    "PathPattern": "/build/assets/*",
+                    "TargetOriginId": "websiteCDNOrigin2BA1CC1CD",
+                    "ViewerProtocolPolicy": "redirect-to-https"
+                  }
+                ],
+                "Comment": "laravel-dev website website CDN",
+                "CustomErrorResponses": [
+                  {
+                    "ErrorCachingMinTTL": 0,
+                    "ErrorCode": 500
+                  },
+                  {
+                    "ErrorCachingMinTTL": 0,
+                    "ErrorCode": 504
+                  }
+                ],
+                "DefaultCacheBehavior": {
+                  "AllowedMethods": [
+                    "GET",
+                    "HEAD",
+                    "OPTIONS",
+                    "PUT",
+                    "PATCH",
+                    "POST",
+                    "DELETE"
+                  ],
+                  "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+                  "Compress": true,
+                  "FunctionAssociations": [
+                    {
+                      "EventType": "viewer-request",
+                      "FunctionARN": {
+                        "Fn::GetAtt": [
+                          "websiteRequestFunction9E9EBB7A",
+                          "FunctionARN"
+                        ]
+                      }
+                    }
+                  ],
+                  "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+                  "TargetOriginId": "websiteCDNOrigin173C249FC",
+                  "ViewerProtocolPolicy": "redirect-to-https"
+                },
+                "Enabled": true,
+                "HttpVersion": "http2",
+                "IPV6Enabled": true,
+                "Origins": [
+                  {
+                    "CustomOriginConfig": {
+                      "OriginProtocolPolicy": "https-only",
+                      "OriginSSLProtocols": [
+                        "TLSv1.2"
+                      ]
+                    },
+                    "DomainName": {
+                      "Fn::Join": [
+                        ".",
+                        [
+                          {
+                            "Ref": "HttpApi"
+                          },
+                          "execute-api.ap-southeast-1.amazonaws.com"
+                        ]
+                      ]
+                    },
+                    "Id": "websiteCDNOrigin173C249FC"
+                  },
+                  {
+                    "DomainName": {
+                      "Fn::GetAtt": [
+                        "websiteAssets2A73BB69",
+                        "RegionalDomainName"
+                      ]
+                    },
+                    "Id": "websiteCDNOrigin2BA1CC1CD",
+                    "S3OriginConfig": {
+                      "OriginAccessIdentity": {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "origin-access-identity/cloudfront/",
+                            {
+                              "Ref": "websiteCDNOrigin2S3OriginED10E993"
+                            }
+                          ]
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
           }
         },
         "Outputs": {
@@ -355,7 +570,7 @@
           "WebLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "WebLambdaVersionY2CS7FZWkvodxC932Uitn7sYGlfMJqRw2pjZHfeVa4s"
+              "Ref": "WebLambdaVersionSD2yfzl4Dghyn35JYfojIUIM6ToTx3VMViTwpw6sci8"
             },
             "Export": {
               "Name": "sls-laravel-dev-WebLambdaFunctionQualifiedArn"
@@ -364,7 +579,7 @@
           "ArtisanLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ArtisanLambdaVersionaDLQGlrcj0hYtA6rxUp4yANVgWpjzDDERLbw825EhI"
+              "Ref": "ArtisanLambdaVersionbYHETTD3cj9kiDkx4rXJVs3aPpAFljXfwvbAoeBmtc"
             },
             "Export": {
               "Name": "sls-laravel-dev-ArtisanLambdaFunctionQualifiedArn"
@@ -402,6 +617,36 @@
             },
             "Export": {
               "Name": "sls-laravel-dev-HttpApiUrl"
+            }
+          },
+          "websiteAssetsBucketNameD9518541": {
+            "Description": "Name of the bucket that stores the website assets.",
+            "Value": {
+              "Ref": "websiteAssets2A73BB69"
+            }
+          },
+          "websiteDomainFCB9350F": {
+            "Description": "Website domain name.",
+            "Value": {
+              "Fn::GetAtt": [
+                "websiteCDN060D946D",
+                "DomainName"
+              ]
+            }
+          },
+          "websiteCloudFrontCNameBE0CEC1D": {
+            "Description": "CloudFront CNAME.",
+            "Value": {
+              "Fn::GetAtt": [
+                "websiteCDN060D946D",
+                "DomainName"
+              ]
+            }
+          },
+          "websiteDistributionId8ED2D37D": {
+            "Description": "ID of the CloudFront distribution.",
+            "Value": {
+              "Ref": "websiteCDN060D946D"
             }
           }
         }
@@ -494,7 +739,8 @@
       "bref": {}
     },
     "plugins": [
-      "./vendor/bref/bref"
+      "./vendor/bref/bref",
+      "serverless-lift"
     ],
     "pluginsData": {},
     "functions": {
@@ -515,7 +761,7 @@
         "memory": 1024,
         "runtime": "provided.al2",
         "vpc": {},
-        "versionLogicalId": "WebLambdaVersionY2CS7FZWkvodxC932Uitn7sYGlfMJqRw2pjZHfeVa4s"
+        "versionLogicalId": "WebLambdaVersionSD2yfzl4Dghyn35JYfojIUIM6ToTx3VMViTwpw6sci8"
       },
       "artisan": {
         "handler": "artisan",
@@ -529,7 +775,216 @@
         "memory": 1024,
         "runtime": "provided.al2",
         "vpc": {},
-        "versionLogicalId": "ArtisanLambdaVersionaDLQGlrcj0hYtA6rxUp4yANVgWpjzDDERLbw825EhI"
+        "versionLogicalId": "ArtisanLambdaVersionbYHETTD3cj9kiDkx4rXJVs3aPpAFljXfwvbAoeBmtc"
+      }
+    },
+    "resources": {
+      "Resources": {
+        "Storage": {
+          "Type": "AWS::S3::Bucket"
+        },
+        "websiteAssets2A73BB69": {
+          "Type": "AWS::S3::Bucket",
+          "UpdateReplacePolicy": "Delete",
+          "DeletionPolicy": "Delete"
+        },
+        "websiteAssetsPolicyFDAAA9C0": {
+          "Type": "AWS::S3::BucketPolicy",
+          "Properties": {
+            "Bucket": {
+              "Ref": "websiteAssets2A73BB69"
+            },
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": "s3:GetObject",
+                  "Effect": "Allow",
+                  "Principal": {
+                    "CanonicalUser": {
+                      "Fn::GetAtt": [
+                        "websiteCDNOrigin2S3OriginED10E993",
+                        "S3CanonicalUserId"
+                      ]
+                    }
+                  },
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        {
+                          "Fn::GetAtt": [
+                            "websiteAssets2A73BB69",
+                            "Arn"
+                          ]
+                        },
+                        "/*"
+                      ]
+                    ]
+                  }
+                }
+              ],
+              "Version": "2012-10-17"
+            }
+          }
+        },
+        "websiteRequestFunction9E9EBB7A": {
+          "Type": "AWS::CloudFront::Function",
+          "Properties": {
+            "FunctionCode": "function handler(event) {\n    var request = event.request;\n    request.headers[\"x-forwarded-host\"] = request.headers[\"host\"];\n    return request;\n}",
+            "FunctionConfig": {
+              "Comment": "laravel-dev-ap-southeast-1-website-request",
+              "Runtime": "cloudfront-js-1.0"
+            },
+            "Name": "laravel-dev-ap-southeast-1-website-request",
+            "AutoPublish": true
+          }
+        },
+        "websiteCDNOrigin2S3OriginED10E993": {
+          "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+          "Properties": {
+            "CloudFrontOriginAccessIdentityConfig": {
+              "Comment": "Identity for websiteCDNOrigin2BA1CC1CD"
+            }
+          }
+        },
+        "websiteCDN060D946D": {
+          "Type": "AWS::CloudFront::Distribution",
+          "Properties": {
+            "DistributionConfig": {
+              "CacheBehaviors": [
+                {
+                  "AllowedMethods": [
+                    "GET",
+                    "HEAD",
+                    "OPTIONS"
+                  ],
+                  "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+                  "Compress": true,
+                  "PathPattern": "/build/assets/*",
+                  "TargetOriginId": "websiteCDNOrigin2BA1CC1CD",
+                  "ViewerProtocolPolicy": "redirect-to-https"
+                }
+              ],
+              "Comment": "laravel-dev website website CDN",
+              "CustomErrorResponses": [
+                {
+                  "ErrorCachingMinTTL": 0,
+                  "ErrorCode": 500
+                },
+                {
+                  "ErrorCachingMinTTL": 0,
+                  "ErrorCode": 504
+                }
+              ],
+              "DefaultCacheBehavior": {
+                "AllowedMethods": [
+                  "GET",
+                  "HEAD",
+                  "OPTIONS",
+                  "PUT",
+                  "PATCH",
+                  "POST",
+                  "DELETE"
+                ],
+                "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+                "Compress": true,
+                "FunctionAssociations": [
+                  {
+                    "EventType": "viewer-request",
+                    "FunctionARN": {
+                      "Fn::GetAtt": [
+                        "websiteRequestFunction9E9EBB7A",
+                        "FunctionARN"
+                      ]
+                    }
+                  }
+                ],
+                "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+                "TargetOriginId": "websiteCDNOrigin173C249FC",
+                "ViewerProtocolPolicy": "redirect-to-https"
+              },
+              "Enabled": true,
+              "HttpVersion": "http2",
+              "IPV6Enabled": true,
+              "Origins": [
+                {
+                  "CustomOriginConfig": {
+                    "OriginProtocolPolicy": "https-only",
+                    "OriginSSLProtocols": [
+                      "TLSv1.2"
+                    ]
+                  },
+                  "DomainName": {
+                    "Fn::Join": [
+                      ".",
+                      [
+                        {
+                          "Ref": "HttpApi"
+                        },
+                        "execute-api.ap-southeast-1.amazonaws.com"
+                      ]
+                    ]
+                  },
+                  "Id": "websiteCDNOrigin173C249FC"
+                },
+                {
+                  "DomainName": {
+                    "Fn::GetAtt": [
+                      "websiteAssets2A73BB69",
+                      "RegionalDomainName"
+                    ]
+                  },
+                  "Id": "websiteCDNOrigin2BA1CC1CD",
+                  "S3OriginConfig": {
+                    "OriginAccessIdentity": {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "origin-access-identity/cloudfront/",
+                          {
+                            "Ref": "websiteCDNOrigin2S3OriginED10E993"
+                          }
+                        ]
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "Outputs": {
+        "websiteAssetsBucketNameD9518541": {
+          "Description": "Name of the bucket that stores the website assets.",
+          "Value": {
+            "Ref": "websiteAssets2A73BB69"
+          }
+        },
+        "websiteDomainFCB9350F": {
+          "Description": "Website domain name.",
+          "Value": {
+            "Fn::GetAtt": [
+              "websiteCDN060D946D",
+              "DomainName"
+            ]
+          }
+        },
+        "websiteCloudFrontCNameBE0CEC1D": {
+          "Description": "CloudFront CNAME.",
+          "Value": {
+            "Fn::GetAtt": [
+              "websiteCDN060D946D",
+              "DomainName"
+            ]
+          }
+        },
+        "websiteDistributionId8ED2D37D": {
+          "Description": "ID of the CloudFront distribution.",
+          "Value": {
+            "Ref": "websiteCDN060D946D"
+          }
+        }
       }
     },
     "configValidationMode": "warn",
@@ -537,7 +992,36 @@
     "initialServerlessConfig": {
       "service": "laravel",
       "provider": {
-        "$ref": "$[\"service\"][\"provider\"]"
+        "name": "aws",
+        "region": "ap-southeast-1",
+        "stage": "dev",
+        "runtime": "provided.al2",
+        "environment": {
+          "AWS_BUCKET": {
+            "Ref": "Storage"
+          }
+        },
+        "iam": {
+          "role": {
+            "statements": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "s3:*"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "${Storage.Arn}"
+                  },
+                  {
+                    "Fn::Sub": "${Storage.Arn}/*"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        "versionFunctions": true
       },
       "package": {
         "patterns": [
@@ -547,15 +1031,50 @@
           "!storage/**",
           "!tests/**"
         ],
-        "artifactsS3KeyDirname": "serverless/laravel/dev/code-artifacts",
-        "artifact": "/Users/adlyalimin/Documents/Laravel/lara10/.serverless/laravel.zip",
-        "artifactDirectoryName": "serverless/laravel/dev/1677743191565-2023-03-02T07:46:31.565Z"
+        "artifactsS3KeyDirname": "serverless/laravel/dev/code-artifacts"
       },
       "functions": {
-        "$ref": "$[\"service\"][\"functions\"]"
+        "web": {
+          "handler": "public/index.php",
+          "timeout": 28,
+          "layers": [
+            "arn:aws:lambda:ap-southeast-1:209497400698:layer:php-81-fpm:42"
+          ],
+          "events": [
+            {
+              "httpApi": "*"
+            }
+          ],
+          "name": "laravel-dev-web"
+        },
+        "artisan": {
+          "handler": "artisan",
+          "timeout": 120,
+          "layers": [
+            "arn:aws:lambda:ap-southeast-1:209497400698:layer:php-81:42",
+            "arn:aws:lambda:ap-southeast-1:209497400698:layer:console:81"
+          ],
+          "events": [],
+          "name": "laravel-dev-artisan"
+        }
       },
       "plugins": {
         "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "resources": {
+        "Resources": {
+          "Storage": {
+            "Type": "AWS::S3::Bucket"
+          }
+        }
+      },
+      "constructs": {
+        "website": {
+          "type": "server-side-website",
+          "assets": {
+            "/build/assets/*": "public/build/assets"
+          }
+        }
       }
     },
     "layers": {},
@@ -563,7 +1082,7 @@
     "artifact": "/Users/adlyalimin/Documents/Laravel/lara10/.serverless/laravel.zip"
   },
   "package": {
-    "artifactDirectoryName": "serverless/laravel/dev/1677743191565-2023-03-02T07:46:31.565Z",
+    "artifactDirectoryName": "serverless/laravel/dev/1678268512911-2023-03-08T09:41:52.911Z",
     "artifact": "laravel.zip"
   }
 }

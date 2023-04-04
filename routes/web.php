@@ -1,6 +1,12 @@
 <?php
 
+use Illuminate\Http\Request;
+use App\Http\Livewire\TestUpload;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\S3Controller;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\UploadController;
+use App\Http\Controllers\FileUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,4 +23,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Route::get('/upload', )
+Route::get('/s3', [S3Controller::class, 'index'])->name('s3.store');
